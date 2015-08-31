@@ -1,0 +1,27 @@
+{
+  "name": "wbs",
+  "version": "0.0.1",
+  "description": "根据关键词抓取与分析微博搜索结果",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmccer/wbs.git"
+  },
+  "keywords": [
+    "抓取",
+    "微博"
+  ],
+  "author": "Kane",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dmccer/wbs/issues"
+  },
+  "homepage": "https://github.com/dmccer/wbs#readme",
+  "dependencies": {
+    "cheerio": "^0.19.0",
+    "request": "^2.61.0"
+  }
+}
