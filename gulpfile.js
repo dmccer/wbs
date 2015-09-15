@@ -17,12 +17,12 @@ gulp.task('test-babel', function() {
 
 gulp.task('config', function() {
   return gulp
-    .src(['./config.js', './db.js'])
+    .src(['./config.js', './db.js', './config.json'])
     .pipe(gulp.dest('built/'));
 });
 
 gulp.task('watch', ['default'], function() {
-  gulp.watch(['./config.js', './db.js'], ['config']);
+  gulp.watch(['./config.js', './db.js', './config.json'], ['config']);
   gulp.watch(['src/**/*.js'], ['src-babel']);
   gulp.watch(['test/src/**/*.js'], ['test-babel']);
 });
