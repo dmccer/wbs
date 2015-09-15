@@ -1,25 +1,27 @@
-// require('../db');
+require('../db');
 
 let path = require('path');
-// let shell = require('shelljs');
-let spawn = require('child_process').spawn;
+let child_process = require('child_process');
 let Processor = require('./processor');
 let Crawl = require('./crawl');
+let config = require('../config');
 
-// (function() {
-//   const PHANTOMJS = 'casperjs';
-//   const LOGINJS = './built/src/_login.js';
-//
-//   let casper = spawn(PHANTOMJS, [LOGINJS], {
-//     stdio: 'inherit'
-//   });
-//
-//   casper.on('close', () => {
-//     console.log('DDDDDD');
-//   });
-// })();
+const CASPERJS = 'casperjs';
+const LOGINJS = './built/src/_login.js';
+const keywords = '二手车 西安';
 
-(function(keywords) {
+// 若已登录，直接使用当前 cookie 信息启动爬虫
+if (fs.existSync(config.login)) {
+  startup();
+} else {
+  let casper = child_process.spawn(CASPERJS, [LOGINJS], {
+    stdio: 'inherit'
+  });
+  casper.on('close', startup);
+}
+
+// 启动爬虫
+function startup() {
   let crawl = new Crawl(keywords);
 
   crawl.on('page', (err, filename) => {
@@ -32,4 +34,4 @@ let Crawl = require('./crawl');
   });
 
   crawl.run();
-})('二手车 西安');
+}
