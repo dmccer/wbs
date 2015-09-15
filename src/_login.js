@@ -1,13 +1,14 @@
 let fs = require('fs');
 let system = require('system');
-let config = require('../config');
+let child_process = require('child_process');
+let wb = JSON.parse(fs.read('./built/config.json').toString()).wb;
 
-var casper = require('casper').create({
-    pageSettings: {
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
-    },
-    verbose: true,
-    logLevel: "debug"
+let casper = require('casper').create({
+  pageSettings: {
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
+  },
+  verbose: true,
+  logLevel: "debug"
 });
 
 casper.start();
@@ -23,64 +24,73 @@ casper.open('http://weibo.com', {
   }
 });
 
-casper.then(() => {
-  fs.write('./built/login.html', casper.page.content);
-});
-
 casper.thenEvaluate((username, password) => {
   document.querySelector('[name="username"]').value = username;
   document.querySelector('[name="password"]').value = password;
-}, config.username, config.password);
+}, wb.username, wb.password);
+
+casper.then(function() {
+  this.click('[action-type="btn_submit"]');
+});
+
+casper.then(function() {
+  this.wait(3000, function() {
+    this.evaluate(function() {
+      window.sinaSSOController.feedBackUrlCallBack({
+        "result": false,
+        "errno": "4049",
+        "reason": "\u4e3a\u4e86\u60a8\u7684\u5e10\u53f7\u5b89\u5168\uff0c\u8bf7\u8f93\u5165\u9a8c\u8bc1\u7801"
+      });
+    });
+  });
+});
+
+casper.then(input_code_and_submit);
 
 function input_code_and_submit() {
-  this.click('.refresh');
-
   let img = this.evaluate(() => {
     return document.querySelector('.code img').src;
   });
 
-  console.log('验证码地址: ' + img);
-  let verifycode = system.stdin.readLine();
+  let i = img.lastIndexOf('/');
+  let name = img.substring(i + 1);
 
-  this.waitFor(function() {
-    return this.evaluate(function(verifycode) {
-      return document.querySelector('[name="verifycode"]').value = verifycode;
-    }, verifycode);
-  }, function() {
-    this.evaluate(function() {
-      console.log(document.querySelector('[name="username"]').value);
-      console.log(document.querySelector('[name="password"]').value);
-      console.log(document.querySelector('[name="verifycode"]').value);
+  let curl = child_process.execFile('wget', [img], null, function(err, stdout, stderr) {
+    fs.move(name, './verify.png');
+  });
+
+  this.wait(3000, function() {
+    console.log('验证码地址: ' + img);
+
+    let verifycode = system.stdin.readLine();
+
+    this.waitFor(function() {
+      return this.evaluate(function(verifycode) {
+        return document.querySelector('[name="verifycode"]').value = verifycode;
+      }, verifycode);
+    }, function() {
+      fs.remove('./verify.png');
+
+      this.evaluate(function() {
+        console.log(document.querySelector('[name="username"]').value);
+        console.log(document.querySelector('[name="password"]').value);
+        console.log(document.querySelector('[name="verifycode"]').value);
+      });
+
+      this.click('[action-type="btn_submit"]');
     });
-
-    this.click('[action-type="btn_submit"]');
-  })
-
-  // this.wait(2000, function() {
-  //   this.evaluate(function() {
-  //     console.log(document.querySelector('[name="username"]').value);
-  //     console.log(document.querySelector('[name="password"]').value);
-  //     console.log(document.querySelector('[name="verifycode"]').value);
-  //
-  //     document.querySelector('[action-type="btn_submit"]').click();
-  //   });
-  //
-  //   // this.click('[action-type="btn_submit"]');
-  // });
+  });
 }
 
-casper.then(input_code_and_submit);
-// casper.then(input_code_and_submit);
-
-
-casper.waitForUrl(/d\.weibo\.com/, function() {
-  console.log('======== : ' + this.getCurrentUrl())
-
-  fs.write('./built/dest.html', casper.page.content);
+casper.waitForUrl(/weibo\.com\/[a-z0-9A-Z]+\/home/, function() {
+  fs.write('./built/login.json', JSON.stringify({
+    cookies: casper.page.cookies,
+    referer: this.getCurrentUrl()
+  }));
 });
 
-casper.on('remote.message', function(msg) {
-  console.log('XXXXXXXXX: ' + msg);
-})
+casper.on('remote.message', function(msg) {});
+
+casper.on('navigation.requested', function(url, navigationType, navigationLocked) {});
 
 casper.run();
