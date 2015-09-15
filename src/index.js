@@ -1,10 +1,10 @@
-require('../db');
-
 let path = require('path');
 let child_process = require('child_process');
 let Processor = require('./processor');
 let Crawl = require('./crawl');
 let config = require('../config');
+
+require('../db');
 
 const CASPERJS = 'casperjs';
 const LOGINJS = './built/src/_login.js';
