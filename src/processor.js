@@ -147,7 +147,7 @@ class Processor {
    * @param {string} data 写入的数据
    */
   success(name: string, data: Object) {
-    console.info(`Update or create ${name} success, the ${name} is\n${JSON.stringify(data)}`);
+    // console.info(`Update or create ${name} success, the ${name} is\n${JSON.stringify(data)}`);
   }
 }
 
