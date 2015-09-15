@@ -1,6 +1,7 @@
 built
 db
 config.js
+config.json
 
 # Logs
 logs
