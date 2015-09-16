@@ -60,6 +60,7 @@ class Crawl extends EventEmitter {
 
     this.max_page_no = parseInt($pages.find('.layer_menu_list li').last().text().replace(/[^\d]/g, ''));
     console.log('### MAX_PAGE_NO = ' + this.max_page_no);
+    console.log('### CURRENT_PAGE_NO = ' + this.page_no);
 
     fs.writeFileSync(
       path.join(config.tmpdir, './pagination.html'),
