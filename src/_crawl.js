@@ -28,8 +28,9 @@ function make_req(url, filename, cookie) {
     // 提取微博列表
     let matched = html.match(direct_re);
     // 存储列表 html 内容 xxx.json
-    fs.write(filename, matched[0], 'w');
-
+    if (matched) {
+      fs.write(filename, matched[0], 'w');
+    }
     phantom.exit();
   });
 
@@ -41,4 +42,11 @@ function make_req(url, filename, cookie) {
   page.onResourceTimeout = function(res) {
     console.log('# timeout - id: ' + res.id + ', url: ' + res.url);
   }
+
+  page.onResourceRequested = function(data, request) {
+    if ((/http:\/\/.+?\.css$/gi).test(data['url'])) {
+      console.log('Skipping', data['url']);
+      request.abort();
+    }
+  };
 }
