@@ -5,6 +5,7 @@
 let cheerio = require('cheerio');
 let fs = require('fs');
 let url = require('url');
+let EventEmitter = require('events').EventEmitter;
 let User = require('./model/user');
 let Msg = require('./model/msg');
 
@@ -12,14 +13,17 @@ let Msg = require('./model/msg');
  * 页面数据提取与存储器
  * @class
  */
-class Processor {
+class Processor extends EventEmitter {
   /**
    * Processor 构造函数
    * @param  {string} filename 页面文件路径
    * @constructor
    */
   constructor(filename: string) {
+    super();
+
     this.file = filename;
+    this.on('els', this.on_els.bind(this));
   }
 
   /**
@@ -38,13 +42,21 @@ class Processor {
       });
       $('.WB_notes').remove();
       let $wb_cards = $('.WB_cardwrap');
-
+      this.emit('els', $wb_cards, $);
       console.log('$wb_cards length: ' + $wb_cards.length);
+    });
+  }
 
-      $wb_cards.each((i, el) => {
-        let item = this.handler($, el);
-        this.save(item);
-      });
+  /**
+   * els 事件回调
+   * @method
+   * @private
+   * @param $wb_cards
+   */
+  on_els($wb_cards: Object, $: Object) {
+    $wb_cards.each((i, el) => {
+      let item = this.handler($, el);
+      this.save(item);
     });
   }
 
